@@ -2,6 +2,10 @@
 require_once 'config.php';
 include 'menu.php';
 
+if (!$loggedin) {
+    header("Location: login.php");
+    exit();
+
 // Verkauf speichern
 $stmt = $pdo->query("SELECT MAX(id) AS max_kw FROM Config");
 $config = $stmt->fetch();
