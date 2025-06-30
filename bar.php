@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+include 'menu.php';
 
 // Verkauf speichern
 $stmt = $pdo->query("SELECT MAX(id) AS max_kw FROM Config");
