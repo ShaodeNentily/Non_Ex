@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+include 'menu.php';
 
 // Verarbeitung aller Tabellen je nach Formular
 
