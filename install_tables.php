@@ -5,43 +5,116 @@ require_once 'config.php';
 
 // SQL-Befehle zum Erstellen der Tabellen
 $sql = "
-CREATE TABLE fehlerberichte (
+CREATE TABLE mitarbeiter (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    datum_erstellt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    datum_erste_meldung DATE,
-    titel VARCHAR(255),
-    melder_email VARCHAR(255),
-    funktionsbeschreibung TEXT,
-    fehlermeldung TEXT,
-    bearbeiter VARCHAR(255),
-    fehlerbehebung TEXT,
-    erledigt_percent ENUM('0', '50', '100') DEFAULT '0',
-    abgenommen TINYINT(1) NOT NULL DEFAULT 0;,
-    prio ENUM('A', 'B', 'C') DEFAULT 'A',
-    bemerkung TEXT,
-    bemerkung_abas TEXT,
-	screenshot VARCHAR(255) DEFAULT NULL
+    name VARCHAR(255) NOT NULL,
+    position VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE benutzer (
+CREATE TABLE getraenke (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    benutzername VARCHAR(50) UNIQUE NOT NULL,
-	email VARCHAR(100) UNIQUE NOT NULL,
-    passwort_hash VARCHAR(255) NOT NULL,
-    rolle ENUM('user', 'editor', 'admin') NOT NULL
+    name VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
 );
 
-CREATE TABLE erledigt_werte (
-    wert INT PRIMARY KEY
+CREATE TABLE position (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
 );
 
-INSERT INTO erledigt_werte (wert) VALUES (0), (50), (100);
-
-CREATE TABLE prio_werte (
-    wert CHAR(1) PRIMARY KEY
+CREATE TABLE config (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(255) NOT NULL
 );
 
-INSERT INTO prio_werte (wert) VALUES ('A'), ('B'), ('C');
+CREATE TABLE dancer_service (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    service VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
+);
+
+CREATE TABLE dancer_bookings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    kunde VARCHAR(255) NOT NULL,
+    service_id INT NOT NULL,
+    anzahl INT NOT NULL,
+    mitarbeiter_id INT NOT NULL,
+    zusatz_gaeste_id INT NOT NULL,
+    zusatz_kosten_id INT NOT NULL,
+    KW_id INT NOT NULL,
+    startzeit DATETIME NOT NULL,
+    endzeit DATETIME NOT NULL,
+    FOREIGN KEY (service_id) REFERENCES dancer_service(id),
+    FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id),
+    FOREIGN KEY (zusatz_gaeste_id) REFERENCES counter(id),
+    FOREIGN KEY (zusatz_kosten_id) REFERENCES dancer_service_zu_kosten(id)
+);
+CREATE TABLE verkaeufe (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    kunde VARCHAR(255) NOT NULL,
+    getraenk_id INT NOT NULL,
+    menge INT NOT NULL,
+    mitarbeiter_id INT NOT NULL,
+    KW_id INT NOT NULL,
+    datum TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (getraenk_id) REFERENCES getraenke(id),
+    FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id)
+);
+
+
+CREATE TABLE photoshots (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    kunde VARCHAR(255) NOT NULL,
+    vip BOOL FALSE,
+    art_id INT NOT NULL,
+    zusatz_gast_id INT NOT NULL,
+    zusatz_kosten_id INT NOT NULL;
+    mitarbeiter_id INT NOT NULL,
+    KW_id INT NOT NULL,
+    datum TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id)
+    
+);
+
+CREATE TABLE photo_service_art (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    art VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
+);
+
+CREATE TABLE counter (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(255) NOT NULL,
+    counter INT NOT NULL
+);
+
+CREATE TABLE photo_service_zu_kosten (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
+);
+
+CREATE TABLE dancer_service_zu_kosten (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
+);
+
+CREATE TABLE security_position (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE security_einteilung (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mitarbeiter_id INT NOT NULL,
+    kw_id INT NOT NULL,
+    stunde TIME NOT NULL,
+    aktiv BOOLEAN DEFAULT FALSE,
+    position_id INT DEFAULT NULL,
+    FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id),
+    FOREIGN KEY (position_id) REFERENCES security_position(id);
+);
 ";
 
 // Ausführen
