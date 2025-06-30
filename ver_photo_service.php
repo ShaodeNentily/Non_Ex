@@ -2,6 +2,10 @@
 require_once 'config.php';
 include 'menu.php';
 
+if (!$loggedin) {
+    header("Location: login.php");
+    exit();
+
 // Verarbeitung aller Tabellen je nach Formular
 
 // --- photo_service_art ---
