@@ -93,3 +93,7 @@ CREATE TABLE dancer_service_zu_kosten (
     preis INT NOT NULL
 );
 
+CREATE TABLE security_position (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(255) NOT NULL
+);
