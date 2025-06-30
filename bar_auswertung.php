@@ -3,13 +3,14 @@ require_once 'config.php';
 
 // Verkäufe mit Preisen, Getränken, Mitarbeitern laden
 $sql = "
-    SELECT v.*, 
-           g.name AS getraenk_name, g.preis, 
-           m.name AS mitarbeiter_name, m.id AS mitarbeiter_id
-    FROM verkaeufe v
-    JOIN getraenke g ON v.getraenk_id = g.id
-    JOIN mitarbeiter m ON v.mitarbeiter_id = m.id
-    ORDER BY v.datum DESC
+    SELECT v.*, g.getraenk, g.preis, m.name AS mitarbeiter_name
+        FROM verkauf v
+        JOIN getraenk g ON v.getraenk_id = g.id
+        JOIN mitarbeiter m ON v.mitarbeiter_id = m.id
+        WHERE v.KW_id = (
+            SELECT MAX(KW_id) FROM verkauf
+)
+ORDER BY v.id DESC
 ";
 $verkaeufe = $pdo->query($sql)->fetchAll();
 
