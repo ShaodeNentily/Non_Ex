@@ -97,3 +97,14 @@ CREATE TABLE security_position (
     id INT AUTO_INCREMENT PRIMARY KEY,
     bezeichnung VARCHAR(255) NOT NULL
 );
+
+CREATE TABLE security_einteilung (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mitarbeiter_id INT NOT NULL,
+    kw_id INT NOT NULL,
+    stunde TIME NOT NULL,
+    aktiv BOOLEAN DEFAULT FALSE,
+    position_id INT DEFAULT NULL,
+    FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id),
+    FOREIGN KEY (position_id) REFERENCES security_position(id);
+);
