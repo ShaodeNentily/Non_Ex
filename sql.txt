@@ -20,6 +20,26 @@ CREATE TABLE config (
     bezeichnung VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE dancer_service (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    service VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
+);
+
+CREATE TABLE dancer_dienste (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    kunde VARCHAR(255) NOT NULL,
+    service_id INT NOT NULL,
+    vip BOOL FALSE,
+    anzahl INT NOT NULL,
+    dauer_id INT NOT NULL,
+    dancer_id INT NOT NULL,
+    zusatz_gast INT NOT NULL,
+    zusatz_gast_price INT NOT NULL,
+    zeit_gestartet TIME NOT NULL,
+    KW_id INT not NULL,
+);
+
 CREATE TABLE verkaeufe (
     id INT AUTO_INCREMENT PRIMARY KEY,
     kunde VARCHAR(255) NOT NULL,
@@ -32,10 +52,42 @@ CREATE TABLE verkaeufe (
     FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id)
 );
 
-CREATE TABLE photo_service (
+
+CREATE TABLE photoshots (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    kunde VARCHAR(255) NOT NULL,
+    vip BOOL FALSE,
+    art_id INT NOT NULL,
+    zusatz_gast_id INT NOT NULL,
+    zusatz_kosten_id INT NOT NULL;
+    mitarbeiter_id INT NOT NULL,
+    KW_id INT NOT NULL,
+    datum TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id)
+    
+);
+
+CREATE TABLE photo_service_art (
     id INT AUTO_INCREMENT PRIMARY KEY,
     art VARCHAR(255) NOT NULL,
-    preis INT NOT NULL,
-    zusatzgaeste INT NOT NULL DEFAULT 0,
-    zusatzpreis INT NOT NULL DEFAULT 0
+    preis INT NOT NULL
 );
+
+CREATE TABLE counter (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(255) NOT NULL,
+    counter INT NOT NULL
+);
+
+CREATE TABLE photo_service_zu_kosten (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
+);
+
+CREATE TABLE dancer_service_zu_kosten (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    bezeichnung VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
+);
+
