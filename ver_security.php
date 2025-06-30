@@ -2,6 +2,10 @@
 require_once 'config.php';
 include 'menu.php';
 
+if (!$loggedin) {
+    header("Location: login.php");
+    exit();
+
 // Hinzufügen
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
     $bezeichnung = trim($_POST['bezeichnung']);
