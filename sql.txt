@@ -26,20 +26,22 @@ CREATE TABLE dancer_service (
     preis INT NOT NULL
 );
 
-CREATE TABLE dancer_dienste (
+CREATE TABLE dancer_bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     kunde VARCHAR(255) NOT NULL,
     service_id INT NOT NULL,
-    vip BOOL FALSE,
     anzahl INT NOT NULL,
-    dauer_id INT NOT NULL,
-    dancer_id INT NOT NULL,
-    zusatz_gast INT NOT NULL,
-    zusatz_gast_price INT NOT NULL,
-    zeit_gestartet TIME NOT NULL,
-    KW_id INT not NULL,
+    mitarbeiter_id INT NOT NULL,
+    zusatz_gaeste_id INT NOT NULL,
+    zusatz_kosten_id INT NOT NULL,
+    KW_id INT NOT NULL,
+    startzeit DATETIME NOT NULL,
+    endzeit DATETIME NOT NULL,
+    FOREIGN KEY (service_id) REFERENCES dancer_service(id),
+    FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id),
+    FOREIGN KEY (zusatz_gaeste_id) REFERENCES counter(id),
+    FOREIGN KEY (zusatz_kosten_id) REFERENCES dancer_service_zu_kosten(id)
 );
-
 CREATE TABLE verkaeufe (
     id INT AUTO_INCREMENT PRIMARY KEY,
     kunde VARCHAR(255) NOT NULL,
