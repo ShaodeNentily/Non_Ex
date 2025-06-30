@@ -2,6 +2,10 @@
 require_once 'config.php';
 include 'menu.php';
 
+if (!$loggedin) {
+    header("Location: login.php");
+    exit();
+
 // Eintrag hinzufügen
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (isset($_POST['add_service'])) {
