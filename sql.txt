@@ -1,0 +1,41 @@
+CREATE TABLE mitarbeiter (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    position VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE getraenke (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
+);
+
+CREATE TABLE position (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE verkaeufe (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    kunde VARCHAR(255) NOT NULL,
+    getraenk_id INT NOT NULL,
+    menge INT NOT NULL,
+    mitarbeiter_id INT NOT NULL,
+    datum TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (getraenk_id) REFERENCES getraenke(id),
+    FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id)
+);
+
+CREATE TABLE photo_service (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    art VARCHAR(255) NOT NULL,
+    preis INT NOT NULL
+);
+
+CREATE TABLE photo_service (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    art VARCHAR(255) NOT NULL,
+    preis INT NOT NULL,
+    zusatzgaeste INT NOT NULL DEFAULT 0,
+    zusatzpreis INT NOT NULL DEFAULT 0
+);
