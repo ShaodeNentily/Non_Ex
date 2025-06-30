@@ -2,6 +2,10 @@
 require_once 'config.php';
 include 'menu.php';
 
+if (!$loggedin) {
+    header("Location: login.php");
+    exit();
+
 // Mitarbeiter löschen
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete_id'])) {
     $id = (int)$_POST['delete_id'];
