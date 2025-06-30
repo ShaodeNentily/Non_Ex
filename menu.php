@@ -76,36 +76,51 @@ include 'config.php';
 	$rollenUebersetzung = [
     'admin' => 'Administrator',
     'editor' => 'Bearbeiter',
+    'head-of' => 'Head-Of',
     'user' => 'Benutzer'
 ];
 ?>
     
     
     <!-- Allgemeines Menü -->
-    <nav>
-        <a href="index.php">Übersicht Projekte</a>
-        <?php if ($loggedin): ?> <a href="hinzufuegen_projekt.php">Projekt hinzufügen</a><?php endif; ?>
-        <?php if (!$loggedin): ?><a href="Admin.php">Benutzer Login</a><?php endif; ?>
+    <nav>  
+        <?php if ($loggedin): ?> <a href="vip_auswertung.php">Übersicht VIP</a><?php endif; ?>
+	<?php if ($loggedin): ?> <a href="bar_auswertung.php">Übersicht Dancer</a><?php endif; ?>
+	<?php if ($loggedin): ?> <a href="photo_auswertung.php">Übersicht Photo</a><?php endif; ?>
+	<?php if ($loggedin): ?> <a href="security_auswertung.php">Übersicht Security</a><?php endif; ?>
+        <?php if (!$loggedin): ?><a href="Login.php">Login</a><?php endif; ?>
 		<?php if ($loggedin): ?><a href="logout.php">Logout</a><?php endif; ?>
 		<button onclick="toggleDarkMode()" id="darkModeButton">🌙</button>
     </nav>
 
-    <?php if ($loggedin): ?>
+    <?php if ($loggedin && $role !== 'user') : ?>
+	<nav>
+		<a href="vip.php">VIP</a>
+		<a href="bar.php">Bar</a>
+		<a href="dancer.php">Dancer</a>
+		<a href="photo.php">Photo</a>
+		<a href="security.php">Security</a>
+	</nav>
+	
     <!-- Menü für alle eingeloggten Benutzer -->
     <nav>
-        <a href="dashboard.php">Dashboard</a> <!-- Für alle Benutzer sichtbar -->
         <a href="kennwort_aendern.php">Kennwort ändern</a> <!-- Für alle Benutzer sichtbar -->
         
         <?php if ($role === 'editor' || $role === 'admin'): ?>
-            <a href="bearbeiten_projekte.php">Projekte bearbeiten</a> <!-- Für Editor und Admin sichtbar -->
+            <a href="ver_getränke.php">Bar Produkte</a> <!-- Für Editor und Admin sichtbar -->
+	    <a href="ver_dancer.php">Dancer Services</a>
+	    <a href="ver_photo_service.php">Photo Services</a>
+	    <a href="ver_sercurity.php">Security Positionen</a>
         <?php endif; ?>
         
         <?php if ($role === 'admin'): ?>
-            <a href="combobox_hinzufuegen.php">Combobox-Werte hinzufügen</a> <!-- Nur für Admin sichtbar -->
-            <a href="admin_hinzufuegen.php">Userverwaltung</a> <!-- Nur für Admin sichtbar -->
+            <a href="ver_mitarbeiter">Mitarbeiter hinzufügen</a> <!-- Nur für Admin sichtbar -->
+            <a href="ver_user.php">Userverwaltung</a> <!-- Nur für Admin sichtbar -->
         <?php endif; ?>
         
-        <p>
+    </nav>
+	<nav>
+		
             Eingeloggt als: 
             <strong><font color="red"><?php echo htmlspecialchars($username); ?></font></strong>  Berechtigung:
 			<?php if ($role === 'user'): ?>
