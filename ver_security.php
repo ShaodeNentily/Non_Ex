@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+include 'menu.php';
 
 // Hinzufügen
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
