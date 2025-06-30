@@ -63,6 +63,7 @@ $result_users = $conn->query("SELECT id, username, email, role FROM users");
 	<td><select name="role">
         <option value="user">User</option>
         <option value="editor">Editor</option>
+	<option value="head-of">Head-Of</option>
         <option value="admin">Admin</option>
         </select></td>
 <tr>
