@@ -1,6 +1,9 @@
 <?php
 require_once 'config.php';
 include 'menu.php';
+if (!$loggedin) {
+    header("Location: login.php");
+    exit();
 
 // Aktuelle KW_ID aus Config
 $stmt = $pdo->query("SELECT MAX(id) AS max_kw FROM Config");
