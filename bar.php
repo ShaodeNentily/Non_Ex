@@ -2,6 +2,10 @@
 require_once 'config.php';
 
 // Verkauf speichern
+$stmt = $pdo->query("SELECT KW_id FROM Config LIMIT 1");
+$config = $stmt->fetch();
+$current_kw_id = $config ? (int)$config['KW_id'] : 0;
+
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['kunde'], $_POST['getraenk_id'], $_POST['menge'], $_POST['mitarbeiter_id'])) {
     $kunde = trim($_POST['kunde']);
     $getraenk_id = (int)$_POST['getraenk_id'];
@@ -9,15 +13,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['kunde'], $_POST['getr
     $mitarbeiter_id = (int)$_POST['mitarbeiter_id'];
 
     if ($kunde && $getraenk_id && $menge > 0 && $mitarbeiter_id) {
-        $stmt = $pdo->prepare("INSERT INTO verkaeufe (kunde, getraenk_id, menge, mitarbeiter_id) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$kunde, $getraenk_id, $menge, $mitarbeiter_id]);
+        $stmt = $pdo->prepare("INSERT INTO verkaeufe (kunde, getraenk_id, menge, mitarbeiter_id, KW_id) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$kunde, $getraenk_id, $menge, $mitarbeiter_id, $current_kw_id]);
         header("Location: bar.php");
         exit;
     }
 }
 
+
 // Getränke abrufen
 $getraenke = $pdo->query("SELECT * FROM getraenke ORDER BY name")->fetchAll();
+
 
 // Barkeeper abrufen
 $barkeeper = $pdo->prepare("SELECT * FROM mitarbeiter WHERE position = ?");
