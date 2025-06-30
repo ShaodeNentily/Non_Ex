@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+include 'menu.php';
 
 // Verkäufe mit Preisen, Getränken, Mitarbeitern laden
 $sql = "
