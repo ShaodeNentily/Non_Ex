@@ -1,6 +1,9 @@
 ﻿<?php
 include 'config.php';
 include 'menu.php';
+if (!$loggedin) {
+    header("Location: login.php");
+    exit();
 
 if (!isset($_GET['id'])) {
     die("Benutzer-ID nicht angegeben.");
