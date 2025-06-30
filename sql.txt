@@ -29,12 +29,6 @@ CREATE TABLE verkaeufe (
 CREATE TABLE photo_service (
     id INT AUTO_INCREMENT PRIMARY KEY,
     art VARCHAR(255) NOT NULL,
-    preis INT NOT NULL
-);
-
-CREATE TABLE photo_service (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    art VARCHAR(255) NOT NULL,
     preis INT NOT NULL,
     zusatzgaeste INT NOT NULL DEFAULT 0,
     zusatzpreis INT NOT NULL DEFAULT 0
