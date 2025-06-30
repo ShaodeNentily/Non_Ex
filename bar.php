@@ -2,7 +2,7 @@
 require_once 'config.php';
 
 // Verkauf speichern
-$stmt = $pdo->query("SELECT MAX(KW_id) AS max_kw FROM Config");
+$stmt = $pdo->query("SELECT MAX(id) AS max_kw FROM Config");
 $config = $stmt->fetch();
 $current_kw_id = $config ? (int)$config['max_kw'] : 0;
 
