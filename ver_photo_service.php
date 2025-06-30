@@ -1,146 +1,181 @@
 <?php
 require_once 'config.php';
 
-// Einzelnes Feld bearbeiten
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Art bearbeiten
-    if (isset($_POST['edit_art'], $_POST['id'])) {
-        $id = (int)$_POST['id'];
-        $art = trim($_POST['edit_art']);
-        if ($art !== '') {
-            $stmt = $pdo->prepare("UPDATE photo_service SET art = ? WHERE id = ?");
-            $stmt->execute([$art, $id]);
-            header("Location: photo_service.php");
-            exit;
-        }
-    }
-    // Preis bearbeiten
-    if (isset($_POST['edit_preis'], $_POST['id'])) {
-        $id = (int)$_POST['id'];
-        $preis = (int)$_POST['edit_preis'];
-        if ($preis >= 0) {
-            $stmt = $pdo->prepare("UPDATE photo_service SET preis = ? WHERE id = ?");
-            $stmt->execute([$preis, $id]);
-            header("Location: photo_service.php");
-            exit;
-        }
-    }
-    // Zusatzgäste bearbeiten
-    if (isset($_POST['edit_zusatzgaeste'], $_POST['id'])) {
-        $id = (int)$_POST['id'];
-        $zusatzgaeste = (int)$_POST['edit_zusatzgaeste'];
-        if ($zusatzgaeste >= 0) {
-            $stmt = $pdo->prepare("UPDATE photo_service SET zusatzgaeste = ? WHERE id = ?");
-            $stmt->execute([$zusatzgaeste, $id]);
-            header("Location: photo_service.php");
-            exit;
-        }
-    }
-    // Zusatzpreis bearbeiten
-    if (isset($_POST['edit_zusatzpreis'], $_POST['id'])) {
-        $id = (int)$_POST['id'];
-        $zusatzpreis = (int)$_POST['edit_zusatzpreis'];
-        if ($zusatzpreis >= 0) {
-            $stmt = $pdo->prepare("UPDATE photo_service SET zusatzpreis = ? WHERE id = ?");
-            $stmt->execute([$zusatzpreis, $id]);
-            header("Location: photo_service.php");
-            exit;
-        }
-    }
-}
+// Verarbeitung aller Tabellen je nach Formular
 
-// Eintrag hinzufügen
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {
+// --- photo_service_art ---
+if (isset($_POST['add_art'])) {
     $art = trim($_POST['art']);
     $preis = (int)$_POST['preis'];
-    $zusatzgaeste = (int)$_POST['zusatzgaeste'];
-    $zusatzpreis = (int)$_POST['zusatzpreis'];
-
-    if ($art !== '' && $preis >= 0 && $zusatzgaeste >= 0 && $zusatzpreis >= 0) {
-        $stmt = $pdo->prepare("INSERT INTO photo_service (art, preis, zusatzgaeste, zusatzpreis) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$art, $preis, $zusatzgaeste, $zusatzpreis]);
-        header("Location: photo_service.php");
-        exit;
+    if ($art !== '' && $preis >= 0) {
+        $stmt = $pdo->prepare("INSERT INTO photo_service_art (art, preis) VALUES (?, ?)");
+        $stmt->execute([$art, $preis]);
     }
+    header("Location: verwaltung.php"); exit;
 }
 
-// Eintrag löschen
-if (isset($_GET['delete'])) {
-    $id = (int)$_GET['delete'];
-    $stmt = $pdo->prepare("DELETE FROM photo_service WHERE id = ?");
-    $stmt->execute([$id]);
-    header("Location: photo_service.php");
-    exit;
+if (isset($_POST['edit_art_id'])) {
+    $id = (int)$_POST['edit_art_id'];
+    $art = trim($_POST['edit_art']);
+    $preis = (int)$_POST['edit_preis'];
+    $stmt = $pdo->prepare("UPDATE photo_service_art SET art = ?, preis = ? WHERE id = ?");
+    $stmt->execute([$art, $preis, $id]);
+    header("Location: verwaltung.php"); exit;
 }
 
-// Einträge laden
-$eintraege = $pdo->query("SELECT * FROM photo_service ORDER BY art")->fetchAll();
+if (isset($_GET['delete_art'])) {
+    $stmt = $pdo->prepare("DELETE FROM photo_service_art WHERE id = ?");
+    $stmt->execute([(int)$_GET['delete_art']]);
+    header("Location: verwaltung.php"); exit;
+}
+
+// --- counter ---
+if (isset($_POST['add_counter'])) {
+    $bez = trim($_POST['counter_bez']);
+    $val = (int)$_POST['counter_val'];
+    if ($bez !== '') {
+        $stmt = $pdo->prepare("INSERT INTO counter (bezeichnung, counter) VALUES (?, ?)");
+        $stmt->execute([$bez, $val]);
+    }
+    header("Location: verwaltung.php"); exit;
+}
+
+if (isset($_POST['edit_counter_id'])) {
+    $id = (int)$_POST['edit_counter_id'];
+    $bez = trim($_POST['edit_counter_bez']);
+    $val = (int)$_POST['edit_counter_val'];
+    $stmt = $pdo->prepare("UPDATE counter SET bezeichnung = ?, counter = ? WHERE id = ?");
+    $stmt->execute([$bez, $val, $id]);
+    header("Location: verwaltung.php"); exit;
+}
+
+if (isset($_GET['delete_counter'])) {
+    $stmt = $pdo->prepare("DELETE FROM counter WHERE id = ?");
+    $stmt->execute([(int)$_GET['delete_counter']]);
+    header("Location: verwaltung.php"); exit;
+}
+
+// --- photo_service_zu_kosten ---
+if (isset($_POST['add_zk'])) {
+    $bez = trim($_POST['zk_bez']);
+    $preis = (int)$_POST['zk_preis'];
+    if ($bez !== '') {
+        $stmt = $pdo->prepare("INSERT INTO photo_service_zu_kosten (bezeichnung, preis) VALUES (?, ?)");
+        $stmt->execute([$bez, $preis]);
+    }
+    header("Location: verwaltung.php"); exit;
+}
+
+if (isset($_POST['edit_zk_id'])) {
+    $id = (int)$_POST['edit_zk_id'];
+    $bez = trim($_POST['edit_zk_bez']);
+    $preis = (int)$_POST['edit_zk_preis'];
+    $stmt = $pdo->prepare("UPDATE photo_service_zu_kosten SET bezeichnung = ?, preis = ? WHERE id = ?");
+    $stmt->execute([$bez, $preis, $id]);
+    header("Location: verwaltung.php"); exit;
+}
+
+if (isset($_GET['delete_zk'])) {
+    $stmt = $pdo->prepare("DELETE FROM photo_service_zu_kosten WHERE id = ?");
+    $stmt->execute([(int)$_GET['delete_zk']]);
+    header("Location: verwaltung.php"); exit;
+}
+
+// Daten laden
+$art_list = $pdo->query("SELECT * FROM photo_service_art ORDER BY art")->fetchAll();
+$counter_list = $pdo->query("SELECT * FROM counter ORDER BY bezeichnung")->fetchAll();
+$zk_list = $pdo->query("SELECT * FROM photo_service_zu_kosten ORDER BY bezeichnung")->fetchAll();
 ?>
 
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Photo-Service</title>
+    <title>Verwaltung Photo-Service</title>
+    <style>
+        table { border-collapse: collapse; width: 500px; margin-bottom: 40px; }
+        th, td { border: 1px solid #999; padding: 8px; }
+        form { display: inline; }
+        input[type="text"], input[type="number"] { width: 120px; }
+    </style>
 </head>
 <body>
-
 <h1>📸 Photo-Service Verwaltung</h1>
 
+<h2>Art + Preis</h2>
 <table>
-    <tr>
-        <th>Art</th>
-        <th>Preis (€)</th>
-        <th>Zusätzliche Gäste</th>
-        <th>Preis pro Gast (€)</th>
-        <th>Aktion</th>
-    </tr>
-    <?php foreach ($eintraege as $e): ?>
-        <tr>
-            <td>
-                <form method="post" style="display:inline;">
-                    <input type="text" name="edit_art" value="<?= htmlspecialchars($e['art']) ?>" required>
-                    <input type="hidden" name="id" value="<?= $e['id'] ?>">
-                    <input type="submit" value="💾">
-                </form>
-            </td>
-            <td>
-                <form method="post" style="display:inline;">
-                    <input type="number" name="edit_preis" value="<?= $e['preis'] ?>" min="0" required>
-                    <input type="hidden" name="id" value="<?= $e['id'] ?>">
-                    <input type="submit" value="💾">
-                </form>
-            </td>
-            <td>
-                <form method="post" style="display:inline;">
-                    <input type="number" name="edit_zusatzgaeste" value="<?= $e['zusatzgaeste'] ?>" min="0" required>
-                    <input type="hidden" name="id" value="<?= $e['id'] ?>">
-                    <input type="submit" value="💾">
-                </form>
-            </td>
-            <td>
-                <form method="post" style="display:inline;">
-                    <input type="number" name="edit_zusatzpreis" value="<?= $e['zusatzpreis'] ?>" min="0" required>
-                    <input type="hidden" name="id" value="<?= $e['id'] ?>">
-                    <input type="submit" value="💾">
-                </form>
-            </td>
-            <td>
-                <a class="delete-link" href="?delete=<?= $e['id'] ?>" onclick="return confirm('Wirklich löschen?')">🗑️</a>
-            </td>
-        </tr>
-    <?php endforeach; ?>
+<tr><th>Art</th><th>Preis (€)</th><th>Aktion</th></tr>
+<?php foreach ($art_list as $row): ?>
+<tr>
+  <form method="post">
+    <td><input type="text" name="edit_art" value="<?= htmlspecialchars($row['art']) ?>" required></td>
+    <td><input type="number" name="edit_preis" value="<?= $row['preis'] ?>" required></td>
+    <td>
+      <input type="hidden" name="edit_art_id" value="<?= $row['id'] ?>">
+      <input type="submit" value="💾">
+      <a href="?delete_art=<?= $row['id'] ] ?>" onclick="return confirm('Löschen?')">🗑️</a>
+    </td>
+  </form>
+</tr>
+<?php endforeach; ?>
+<tr>
+  <form method="post">
+    <td><input type="text" name="art" required></td>
+    <td><input type="number" name="preis" required></td>
+    <td><input type="submit" name="add_art" value="➕ Hinzufügen"></td>
+  </form>
+</tr>
 </table>
 
-<h2>➕ Eintrag hinzufügen</h2>
-<form method="post" class="add-form">
-    <input type="hidden" name="add" value="1">
-    <input type="text" name="art" placeholder="Art der Dienstleistung" required><br>
-    <input type="number" name="preis" placeholder="Basispreis in €" min="0" required><br>
-    <input type="number" name="zusatzgaeste" placeholder="Zusätzliche Gäste (max)" min="0" required><br>
-    <input type="number" name="zusatzpreis" placeholder="Preis pro zusätzlichem Gast (€)" min="0" required><br>
-    <input type="submit" value="Hinzufügen">
-</form>
+<h2>Counter</h2>
+<table>
+<tr><th>Bezeichnung</th><th>Wert</th><th>Aktion</th></tr>
+<?php foreach ($counter_list as $row): ?>
+<tr>
+  <form method="post">
+    <td><input type="text" name="edit_counter_bez" value="<?= htmlspecialchars($row['bezeichnung']) ?>" required></td>
+    <td><input type="number" name="edit_counter_val" value="<?= $row['counter'] ?>" required></td>
+    <td>
+      <input type="hidden" name="edit_counter_id" value="<?= $row['id'] ?>">
+      <input type="submit" value="💾">
+      <a href="?delete_counter=<?= $row['id'] ?>" onclick="return confirm('Löschen?')">🗑️</a>
+    </td>
+  </form>
+</tr>
+<?php endforeach; ?>
+<tr>
+  <form method="post">
+    <td><input type="text" name="counter_bez" required></td>
+    <td><input type="number" name="counter_val" required></td>
+    <td><input type="submit" name="add_counter" value="➕ Hinzufügen"></td>
+  </form>
+</tr>
+</table>
+
+<h2>Zusatzkosten</h2>
+<table>
+<tr><th>Bezeichnung</th><th>Preis (€)</th><th>Aktion</th></tr>
+<?php foreach ($zk_list as $row): ?>
+<tr>
+  <form method="post">
+    <td><input type="text" name="edit_zk_bez" value="<?= htmlspecialchars($row['bezeichnung']) ?>" required></td>
+    <td><input type="number" name="edit_zk_preis" value="<?= $row['preis'] ?>" required></td>
+    <td>
+      <input type="hidden" name="edit_zk_id" value="<?= $row['id'] ?>">
+      <input type="submit" value="💾">
+      <a href="?delete_zk=<?= $row['id'] ?>" onclick="return confirm('Löschen?')">🗑️</a>
+    </td>
+  </form>
+</tr>
+<?php endforeach; ?>
+<tr>
+  <form method="post">
+    <td><input type="text" name="zk_bez" required></td>
+    <td><input type="number" name="zk_preis" required></td>
+    <td><input type="submit" name="add_zk" value="➕ Hinzufügen"></td>
+  </form>
+</tr>
+</table>
 
 </body>
 </html>
