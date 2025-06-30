@@ -108,3 +108,11 @@ CREATE TABLE security_einteilung (
     FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id),
     FOREIGN KEY (position_id) REFERENCES security_position(id);
 );
+
+CREATE TABLE benutzer (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    benutzername VARCHAR(50) UNIQUE NOT NULL,
+	email VARCHAR(100) UNIQUE NOT NULL,
+    passwort_hash VARCHAR(255) NOT NULL,
+    rolle ENUM('user', 'editor', 'admin') NOT NULL
+);
