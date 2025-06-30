@@ -21,6 +21,7 @@ CREATE TABLE verkaeufe (
     getraenk_id INT NOT NULL,
     menge INT NOT NULL,
     mitarbeiter_id INT NOT NULL,
+    kw_id INT NOT NULL,
     datum TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (getraenk_id) REFERENCES getraenke(id),
     FOREIGN KEY (mitarbeiter_id) REFERENCES mitarbeiter(id)
