@@ -2,6 +2,10 @@
 require_once 'config.php';
 include 'menu.php';
 
+if (!$loggedin) {
+    header("Location: login.php");
+    exit();
+
 // Verkäufe mit Preisen, Getränken, Mitarbeitern laden
 $sql = "
     SELECT v.*, g.getraenk, g.preis, m.name AS mitarbeiter_name
