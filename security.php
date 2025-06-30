@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+include 'menu.php';
 
 // Aktuelle KW aus Config holen (max ID)
 $stmt = $pdo->query("SELECT MAX(id) AS max_kw FROM Config");
