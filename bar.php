@@ -2,9 +2,9 @@
 require_once 'config.php';
 
 // Verkauf speichern
-$stmt = $pdo->query("SELECT KW_id FROM Config LIMIT 1");
+$stmt = $pdo->query("SELECT MAX(KW_id) AS max_kw FROM Config");
 $config = $stmt->fetch();
-$current_kw_id = $config ? (int)$config['KW_id'] : 0;
+$current_kw_id = $config ? (int)$config['max_kw'] : 0;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['kunde'], $_POST['getraenk_id'], $_POST['menge'], $_POST['mitarbeiter_id'])) {
     $kunde = trim($_POST['kunde']);
