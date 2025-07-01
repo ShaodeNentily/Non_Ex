@@ -2,9 +2,10 @@
 include 'config.php';
 include 'menu.php';
 
-if (!$loggedin) {
+if (!$loggedin && $role !=='admin') {
     header("Location: login.php");
     exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
@@ -98,7 +99,11 @@ $result_users = $conn->query("SELECT id, username, email, role FROM users");
         <td><?php echo $rollenUebersetzung[$role] ; ?></td>
         <td>
             <a href="edit_user.php?id=<?php echo $user['id']; ?>">Bearbeiten</a> |
-            <a href="delete_user.php?id=<?php echo $user['id']; ?>" onclick="return confirm('Möchten Sie diesen Benutzer wirklich löschen?');">Löschen</a>
+            <?php if ($user['id'] != 1): ?>
+            | <a href="delete_user.php?id=<?php echo $user['id']; ?>" onclick="return confirm('Möchten Sie diesen Benutzer wirklich löschen?');">Löschen</a>
+        <?php else: ?>
+            | <span style="color: gray;" title="Dieser Benutzer kann nicht gelöscht werden.">Löschen</span>
+        <?php endif; ?>
         </td>
     </tr>
     <?php endwhile; ?>

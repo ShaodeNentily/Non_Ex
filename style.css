@@ -155,3 +155,24 @@ body.dark-mode tr:hover {
     background-color: #555;
     color: #ffcc00;
 }
+nav {
+  background-color: #222;       /* Dunkler Hintergrund */
+  padding: 15px 30px;           /* Innenabstand rundherum */
+  display: flex;                /* Elemente nebeneinander */
+  gap: 25px;                    /* Abstand zwischen den Text-Elementen */
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  color: #eee;                  /* Heller Text für guten Kontrast */
+}
+
+nav a {
+  color: #eee;                  /* Linkfarbe */
+  text-decoration: none;        /* Unterstreichung aus */
+  padding: 5px 10px;            /* Innenabstand für Klickbereich */
+  border-radius: 4px;           /* Abgerundete Ecken */
+  transition: background-color 0.3s ease;
+}
+
+nav a:hover {
+  background-color: #444;       /* Hover-Effekt: etwas helleres Dunkel */
+}

@@ -6,6 +6,7 @@ include 'config.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="darkmode.js"></script>
 	<link rel="stylesheet" href="style.css"> <!-- CSS-Datei hier einbinden -->
 	<!---<script>
     // Dark-Mode umschalten und in localStorage speichern
@@ -76,7 +77,7 @@ include 'config.php';
 	$rollenUebersetzung = [
     'admin' => 'Administrator',
     'editor' => 'Bearbeiter',
-    'head-of' => 'Head-Of',
+    'staff' => 'Head-Of',
     'user' => 'Benutzer'
 ];
 ?>
@@ -85,8 +86,9 @@ include 'config.php';
     <!-- Allgemeines Menü -->
     <nav>  
         <?php if ($loggedin): ?> <a href="vip_auswertung.php">Übersicht VIP</a><?php endif; ?>
-	<?php if ($loggedin): ?> <a href="bar_auswertung.php">Übersicht Dancer</a><?php endif; ?>
+	<?php if ($loggedin): ?> <a href="bar_auswertung.php">Übersicht Bar</a><?php endif; ?>
 	<?php if ($loggedin): ?> <a href="photo_auswertung.php">Übersicht Photo</a><?php endif; ?>
+	<?php if ($loggedin): ?> <a href="dancer_auswertung.php">Übersicht Dancer</a><?php endif; ?>
 	<?php if ($loggedin): ?> <a href="security_auswertung.php">Übersicht Security</a><?php endif; ?>
         <?php if (!$loggedin): ?><a href="Login.php">Login</a><?php endif; ?>
 		<?php if ($loggedin): ?><a href="logout.php">Logout</a><?php endif; ?>
@@ -110,11 +112,11 @@ include 'config.php';
             <a href="ver_getränke.php">Bar Produkte</a> <!-- Für Editor und Admin sichtbar -->
 	    <a href="ver_dancer.php">Dancer Services</a>
 	    <a href="ver_photo_service.php">Photo Services</a>
-	    <a href="ver_sercurity.php">Security Positionen</a>
+	    <a href="ver_security.php">Security Positionen</a>
         <?php endif; ?>
         
         <?php if ($role === 'admin'): ?>
-            <a href="ver_mitarbeiter">Mitarbeiter hinzufügen</a> <!-- Nur für Admin sichtbar -->
+            <a href="ver_mitarbeiter.php">Mitarbeiter hinzufügen</a> <!-- Nur für Admin sichtbar -->
             <a href="ver_user.php">Userverwaltung</a> <!-- Nur für Admin sichtbar -->
         <?php endif; ?>
         

@@ -5,6 +5,7 @@ include 'menu.php';
 if (!$loggedin) {
     header("Location: login.php");
     exit();
+}
 
 // Aktuelle KW aus Config holen (max ID)
 $stmt = $pdo->query("SELECT MAX(id) AS max_kw FROM Config");
@@ -12,13 +13,22 @@ $config = $stmt->fetch();
 $current_kw_id = $config ? (int)$config['max_kw'] : 0;
 
 // Mitarbeiter laden (Position Security oder alle, je nach Bedarf)
-$mitarbeiter = $pdo->query("SELECT id, name FROM mitarbeiter ORDER BY name")->fetchAll();
+$sql = "
+    SELECT m.*
+    FROM mitarbeiter m
+    JOIN Position p ON m.position = p.id
+    WHERE p.name = ?
+";
+
+$mitarbeiter = $pdo->prepare($sql);
+$mitarbeiter->execute(['Security']);
+$mitarbeiter = $mitarbeiter->fetchAll();
 
 // Positionen laden
 $positionen = $pdo->query("SELECT * FROM security_position ORDER BY bezeichnung")->fetchAll();
 
-// Stunden 0 bis 23
-$stunden = range(0, 23);
+// Stunden 19 bis 23
+$stunden = range(19, 23);
 
 // Einteilungen laden für aktuelle KW
 $stmt = $pdo->prepare("SELECT * FROM security_einteilung WHERE kw_id = ?");
@@ -49,11 +59,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $exists = $stmt->fetchColumn();
 
             if ($exists) {
-                $stmt = $pdo->prepare("UPDATE security_einteilung SET aktiv = ?, position_id = ? WHERE id = ?");
-                $stmt->execute([$aktiv, $position_id, $exists]);
+                $stmt = $pdo->prepare("UPDATE security_einteilung SET position_id = ? WHERE id = ?");
+                $stmt->execute([$position_id, $exists]);
             } else {
-                $stmt = $pdo->prepare("INSERT INTO security_einteilung (mitarbeiter_id, kw_id, stunde, aktiv, position_id) VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([$mid, $current_kw_id, $s, $aktiv, $position_id]);
+                $stmt = $pdo->prepare("INSERT INTO security_einteilung (mitarbeiter_id, kw_id, stunde, position_id) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$mid, $current_kw_id, $s, $position_id]);
             }
         }
     }
@@ -67,13 +77,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="UTF-8">
     <title>Security-Einteilung KW <?= $current_kw_id ?></title>
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 4px; text-align: center; }
-        select, input[type="checkbox"] { width: 100%; }
-        th.stunde { width: 40px; }
-        td.position select { width: 100%; }
-    </style>
 </head>
 <body>
     <h1>Security-Einteilung für KW <?= $current_kw_id ?></h1>
@@ -85,7 +88,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <th>Mitarbeiter</th>
                     <?php foreach ($stunden as $s): ?>
                         <th class="stunde"><?= $s ?></th>
-                        <th class="position">Pos.</th>
                     <?php endforeach; ?>
                 </tr>
             </thead>
@@ -94,13 +96,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <tr>
                         <td><?= htmlspecialchars($m['name']) ?></td>
                         <?php foreach ($stunden as $s): 
-                            $checked = isset($data[$m['id']][$s]['aktiv']) && $data[$m['id']][$s]['aktiv'] ? 'checked' : '';
                             $selected_pos = $data[$m['id']][$s]['position_id'] ?? '';
                         ?>
-                            <td>
-                                <input type="checkbox" name="zeit_<?= $m['id'] ?>_<?= $s ?>" <?= $checked ?>>
-                            </td>
-                            <td class="position">
+                              <td class="position">
                                 <select name="pos_<?= $m['id'] ?>_<?= $s ?>">
                                     <option value="">-</option>
                                     <?php foreach ($positionen as $p): ?>

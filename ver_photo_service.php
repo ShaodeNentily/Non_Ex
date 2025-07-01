@@ -2,9 +2,10 @@
 require_once 'config.php';
 include 'menu.php';
 
-if (!$loggedin) {
+if (!$loggedin && $role !=='admin') {
     header("Location: login.php");
     exit();
+}
 
 // Verarbeitung aller Tabellen je nach Formular
 
@@ -16,7 +17,7 @@ if (isset($_POST['add_art'])) {
         $stmt = $pdo->prepare("INSERT INTO photo_service_art (art, preis) VALUES (?, ?)");
         $stmt->execute([$art, $preis]);
     }
-    header("Location: verwaltung.php"); exit;
+    header("Location: ver_photo_service.php"); exit;
 }
 
 if (isset($_POST['edit_art_id'])) {
@@ -25,13 +26,13 @@ if (isset($_POST['edit_art_id'])) {
     $preis = (int)$_POST['edit_preis'];
     $stmt = $pdo->prepare("UPDATE photo_service_art SET art = ?, preis = ? WHERE id = ?");
     $stmt->execute([$art, $preis, $id]);
-    header("Location: verwaltung.php"); exit;
+    header("Location: ver_photo_service.php"); exit;
 }
 
 if (isset($_GET['delete_art'])) {
     $stmt = $pdo->prepare("DELETE FROM photo_service_art WHERE id = ?");
     $stmt->execute([(int)$_GET['delete_art']]);
-    header("Location: verwaltung.php"); exit;
+    header("Location: ver_photo_service.php"); exit;
 }
 
 // --- counter ---
@@ -42,7 +43,7 @@ if (isset($_POST['add_counter'])) {
         $stmt = $pdo->prepare("INSERT INTO counter (bezeichnung, counter) VALUES (?, ?)");
         $stmt->execute([$bez, $val]);
     }
-    header("Location: verwaltung.php"); exit;
+    header("Location: ver_photo_service.php"); exit;
 }
 
 if (isset($_POST['edit_counter_id'])) {
@@ -51,13 +52,13 @@ if (isset($_POST['edit_counter_id'])) {
     $val = (int)$_POST['edit_counter_val'];
     $stmt = $pdo->prepare("UPDATE counter SET bezeichnung = ?, counter = ? WHERE id = ?");
     $stmt->execute([$bez, $val, $id]);
-    header("Location: verwaltung.php"); exit;
+    header("Location: ver_photo_service.php"); exit;
 }
 
 if (isset($_GET['delete_counter'])) {
     $stmt = $pdo->prepare("DELETE FROM counter WHERE id = ?");
     $stmt->execute([(int)$_GET['delete_counter']]);
-    header("Location: verwaltung.php"); exit;
+    header("Location: ver_photo_service.php"); exit;
 }
 
 // --- photo_service_zu_kosten ---
@@ -68,7 +69,7 @@ if (isset($_POST['add_zk'])) {
         $stmt = $pdo->prepare("INSERT INTO photo_service_zu_kosten (bezeichnung, preis) VALUES (?, ?)");
         $stmt->execute([$bez, $preis]);
     }
-    header("Location: verwaltung.php"); exit;
+    header("Location: ver_photo_service.php"); exit;
 }
 
 if (isset($_POST['edit_zk_id'])) {
@@ -77,19 +78,20 @@ if (isset($_POST['edit_zk_id'])) {
     $preis = (int)$_POST['edit_zk_preis'];
     $stmt = $pdo->prepare("UPDATE photo_service_zu_kosten SET bezeichnung = ?, preis = ? WHERE id = ?");
     $stmt->execute([$bez, $preis, $id]);
-    header("Location: verwaltung.php"); exit;
+    header("Location: ver_photo_service.php"); exit;
 }
 
 if (isset($_GET['delete_zk'])) {
     $stmt = $pdo->prepare("DELETE FROM photo_service_zu_kosten WHERE id = ?");
     $stmt->execute([(int)$_GET['delete_zk']]);
-    header("Location: verwaltung.php"); exit;
+    header("Location: ver_photo_service.php"); exit;
 }
 
 // Daten laden
 $art_list = $pdo->query("SELECT * FROM photo_service_art ORDER BY art")->fetchAll();
 $counter_list = $pdo->query("SELECT * FROM counter ORDER BY bezeichnung")->fetchAll();
 $zk_list = $pdo->query("SELECT * FROM photo_service_zu_kosten ORDER BY bezeichnung")->fetchAll();
+$rooms_list = $pdo->query("SELECT * FROM rooms ORDER BY bezeichnung")->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -97,19 +99,13 @@ $zk_list = $pdo->query("SELECT * FROM photo_service_zu_kosten ORDER BY bezeichnu
 <head>
     <meta charset="UTF-8">
     <title>Verwaltung Photo-Service</title>
-    <style>
-        table { border-collapse: collapse; width: 500px; margin-bottom: 40px; }
-        th, td { border: 1px solid #999; padding: 8px; }
-        form { display: inline; }
-        input[type="text"], input[type="number"] { width: 120px; }
-    </style>
 </head>
 <body>
 <h1>📸 Photo-Service Verwaltung</h1>
 
 <h2>Art + Preis</h2>
 <table>
-<tr><th>Art</th><th>Preis (€)</th><th>Aktion</th></tr>
+<tr><th>Art</th><th>Preis</th><th>Aktion</th></tr>
 <?php foreach ($art_list as $row): ?>
 <tr>
   <form method="post">
@@ -118,7 +114,7 @@ $zk_list = $pdo->query("SELECT * FROM photo_service_zu_kosten ORDER BY bezeichnu
     <td>
       <input type="hidden" name="edit_art_id" value="<?= $row['id'] ?>">
       <input type="submit" value="💾">
-      <a href="?delete_art=<?= $row['id'] ] ?>" onclick="return confirm('Löschen?')">🗑️</a>
+      <a href="?delete_art=<?= $row['id'] ?>" onclick="return confirm('Löschen?')">🗑️</a>
     </td>
   </form>
 </tr>
@@ -159,7 +155,7 @@ $zk_list = $pdo->query("SELECT * FROM photo_service_zu_kosten ORDER BY bezeichnu
 
 <h2>Zusatzkosten</h2>
 <table>
-<tr><th>Bezeichnung</th><th>Preis (€)</th><th>Aktion</th></tr>
+<tr><th>Bezeichnung</th><th>Preis</th><th>Aktion</th></tr>
 <?php foreach ($zk_list as $row): ?>
 <tr>
   <form method="post">
@@ -181,6 +177,29 @@ $zk_list = $pdo->query("SELECT * FROM photo_service_zu_kosten ORDER BY bezeichnu
   </form>
 </tr>
 </table>
-
+<h2>Räume</h2>
+<table>
+<tr><th>Bezeichnung</th><th>Aktion</th></tr>
+<?php foreach ($rooms_list as $room): ?>
+<tr>
+  <form method="post">
+    <td>
+      <input type="text" name="edit_room_bez" value="<?= htmlspecialchars($room['bezeichnung']) ?>" required>
+    </td>
+    <td>
+      <input type="hidden" name="edit_room_id" value="<?= $room['id'] ?>">
+      <input type="submit" value="💾">
+      <a href="?delete_room=<?= $room['id'] ?>" onclick="return confirm('Diesen Raum wirklich löschen?')">🗑️</a>
+    </td>
+  </form>
+</tr>
+<?php endforeach; ?>
+<tr>
+  <form method="post">
+    <td><input type="text" name="room_bez" required></td>
+    <td><input type="submit" name="add_room" value="➕ Hinzufügen"></td>
+  </form>
+</tr>
+</table>
 </body>
 </html>

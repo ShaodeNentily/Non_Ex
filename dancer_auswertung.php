@@ -5,11 +5,13 @@ include 'menu.php';
 if (!$loggedin) {
     header("Location: login.php");
     exit();
-
+}
 // Aktuelle KW_ID aus Config holen
-$stmt = $pdo->query("SELECT MAX(id) AS max_kw FROM Config");
-$config = $stmt->fetch();
-$current_kw_id = $config ? (int)$config['max_kw'] : 0;
+// Kalenderwochen (KW) aus der config-Tabelle holen
+$alleKWs = $pdo->query("SELECT id, bezeichnung FROM config ORDER BY id DESC")->fetchAll();
+
+// Aktuelle KW (höchste ID) oder vom User gewählte KW
+$aktuelleKW = isset($_GET['kw']) && ctype_digit($_GET['kw']) ? (int)$_GET['kw'] : $alleKWs[0]['id'];
 
 // Daten abrufen
 $stmt = $pdo->prepare("
@@ -22,8 +24,9 @@ $stmt = $pdo->prepare("
     JOIN mitarbeiter m ON b.mitarbeiter_id = m.id
     JOIN counter c ON b.zusatz_gaeste_id = c.id
     JOIN dancer_service_zu_kosten dk ON b.zusatz_kosten_id = dk.id
-    WHERE b.KW_id = ?
+    WHERE b.KW_id = :kw
     ORDER BY b.startzeit DESC
+	WHERE v.eingetragen_von = :username
 ");
 $stmt->execute([$current_kw_id]);
 $buchungen = $stmt->fetchAll();
@@ -34,17 +37,35 @@ function berechne_summe($service_preis, $anzahl, $vip = false, $gaeste = 0, $kos
     $gesamt += $gaeste * $kosten_pro_gast;
     return $gesamt;
 }
+$aktuelleKWBezeichnung = '';
+foreach ($alleKWs as $kw) {
+    if ($kw['id'] == $aktuelleKW) {
+        $aktuelleKWBezeichnung = $kw['bezeichnung'];
+        break;
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>💃 Tänzer Auswertung (KW <?= $current_kw_id ?>)</title>
+    <title>💃 Tänzer Auswertung (KW <?= $aktuelleKWBezeichnung ?>)</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>💃 Tänzer Auswertung (KW <?= $current_kw_id ?>)</h1>
+<h1>💃 Tänzer Auswertung – <?= htmlspecialchars($aktuelleKWBezeichnung) ?></h1>
+
+<form method="get" style="margin-bottom: 1em;">
+    <label for="kw">Kalenderwoche wählen:</label>
+    <select name="kw" id="kw" onchange="this.form.submit()">
+        <?php foreach ($alleKWs as $kw): ?>
+            <option value="<?= $kw['id'] ?>" <?= $kw['id'] == $aktuelleKW ? 'selected' : '' ?>>
+                <?= htmlspecialchars($kw['bezeichnung']) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</form>
 <table>
     <tr>
         <th>Kunde</th>
@@ -56,7 +77,8 @@ function berechne_summe($service_preis, $anzahl, $vip = false, $gaeste = 0, $kos
         <th>Start</th>
         <th>Ende</th>
         <th>VIP</th>
-        <th>Summe €</th>
+		<th>Eingetragen von</th>
+        <th>Summe</th>
     </tr>
     <?php foreach ($buchungen as $b): ?>
         <tr>
@@ -69,6 +91,7 @@ function berechne_summe($service_preis, $anzahl, $vip = false, $gaeste = 0, $kos
             <td><?= $b['startzeit'] ?></td>
             <td><?= $b['endzeit'] ?></td>
             <td><?= $b['vip'] ? '✅' : '❌' ?></td>
+			<td><?= htmlspecialchars($b['eingetragen_von']) ?></td>
             <td>
                 <?php
                 $summe = berechne_summe(

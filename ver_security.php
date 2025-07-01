@@ -2,9 +2,10 @@
 require_once 'config.php';
 include 'menu.php';
 
-if (!$loggedin) {
+if (!$loggedin && $role !=='admin')  {
     header("Location: login.php");
     exit();
+}
 
 // Hinzufügen
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add'])) {

@@ -4,6 +4,7 @@ include 'menu.php';
 if (!$loggedin) {
     header("Location: login.php");
     exit();
+}
 
 if (!isset($_GET['id'])) {
     die("Benutzer-ID nicht angegeben.");
@@ -91,12 +92,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <tr>
                     <td><label for="is_admin">Rolle:</label></td>
                     <td>
-                            <select name="role">
-                                <option value="user" <?php echo $user['role'] === 'user' ? 'selected' : ''; ?>>User</option>
-                                <option value="editor" <?php echo $user['role'] === 'editor' ? 'selected' : ''; ?>>Editor</option>
-                                <option value="admin" <?php echo $user['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
-                            </select>
-                    </td>
+						<?php if ($user['id'] != 1): ?>
+							<select name="role">
+								<option value="user" <?php echo $user['role'] === 'user' ? 'selected' : ''; ?>>User</option>
+								<option value="editor" <?php echo $user['role'] === 'editor' ? 'selected' : ''; ?>>Editor</option>
+								<option value="admin" <?php echo $user['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
+							</select>
+						<?php else: ?>
+						<strong><?php echo ucfirst($user['role']); ?></strong> (festgelegt)
+							<input type="hidden" name="role" value="<?php echo htmlspecialchars($user['role']); ?>">
+							<?php endif; ?>
+					</td>
                 </tr>
                 <tr>
                     <td><label for="password">Neues Kennwort (optional):</label></td>

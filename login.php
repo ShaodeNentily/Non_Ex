@@ -1,103 +1,83 @@
 <?php
-//session_start();
-include 'config.php'; // Verbindungsdetails zur Datenbank
+session_start();
+include 'config.php';
 include 'menu.php';
 
-// Überprüfen, ob das Formular abgeschickt wurde
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['action']) && $_POST['action'] == 'login') {
+    if ($_POST['action'] == 'login') {
         $username = $_POST['username'];
         $password = $_POST['password'];
 
-        // SQL-Abfrage zur Authentifizierung des Benutzers
-        $sql = "SELECT * FROM users WHERE username = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
+        $sql = "SELECT * FROM benutzer WHERE username = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
 
-        // Überprüfen, ob der Benutzer existiert und das Passwort korrekt ist
-        if ($user && password_verify($password, $user['password'])) {
+        if (!$user) {
+            $login_error = "Benutzer nicht gefunden.";
+        } elseif (!isset($user['passwort_hash'])) {
+            $login_error = "Fehler: Passwortfeld fehlt.";
+        } elseif (password_verify($password, $user['passwort_hash'])) {
             $_SESSION['loggedin'] = true;
-			$_SESSION['role'] = $user['role'];
+            $_SESSION['role'] = $user['rolle']; // Feldname in DB ist 'rolle'
             $_SESSION['username'] = $user['username'];
-            header("Location: dashboard.php");
+            header("Location: bar.php");
             exit;
         } else {
-            $login_error = "Login fehlgeschlagen oder keine Berechtigung.";
+            $login_error = "Falsches Passwort.";
         }
 
-        $stmt->close();
-        $conn->close();
-    } elseif (isset($_POST['action']) && $_POST['action'] == 'register') {
+    } elseif ($_POST['action'] == 'register') {
         $username = $_POST['username'];
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $password = passwort_hash($_POST['password'], PASSWORD_DEFAULT);
         $email = $_POST['email'];
+        $rolle = "user"; // Standardrolle
 
-        // Überprüfen, ob der Benutzername bereits existiert
-        $sql = "SELECT * FROM users WHERE username = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $stmt = $pdo->prepare("SELECT * FROM benutzer WHERE username = ?");
+        $stmt->execute([$username]);
 
-        if ($result->num_rows > 0) {
+        if ($stmt->fetch()) {
             $register_error = "Benutzername bereits vergeben.";
         } else {
-            // Benutzer in der Datenbank speichern
-            $sql = "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)";
-			$role = "user";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssss", $username, $password, $email, $role);
-            if ($stmt->execute()) {
+            $sql = "INSERT INTO benutzer (username, passwort_hash, email, rolle) VALUES (?, ?, ?, ?)";
+            $stmt = $pdo->prepare($sql);
+            if ($stmt->execute([$username, $password, $email, $rolle])) {
                 $register_success = "Registrierung erfolgreich! Sie können sich jetzt einloggen.";
+				$sql = "INSERT INTO mitarbeiter (name, position) VALUES (?, ?)";
+				$stmt = $pdo->prepare($sql);
+				$stmt->execute([$username, 'Staff']);
             } else {
                 $register_error = "Fehler bei der Registrierung. Bitte versuchen Sie es erneut.";
             }
         }
 
-        $stmt->close();
-        $conn->close();
-    } elseif (isset($_POST['action']) && $_POST['action'] == 'reset_password') {
+    } elseif ($_POST['action'] == 'reset_password') {
         $email = $_POST['email'];
 
-        // SQL-Abfrage zur Überprüfung, ob die E-Mail existiert
-        $sql = "SELECT * FROM users WHERE email = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
+        $stmt = $pdo->prepare("SELECT * FROM benutzer WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
 
         if ($user) {
-            // Generiere einen zufälligen Token
             $token = bin2hex(random_bytes(50));
             $expiry = date("Y-m-d H:i:s", strtotime('+1 hour'));
 
-            // Speichere den Token und das Ablaufdatum in der Datenbank
-            $sql = "UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE email = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sss", $token, $expiry, $email);
-            $stmt->execute();
+            $sql = "UPDATE benutzer SET reset_token = ?, reset_token_expiry = ? WHERE email = ?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$token, $expiry, $email]);
 
-            // Versende den Link per E-Mail
-            $reset_link = "http://srv-fs01:81/reset_password.php?token=" . $token; // Ändere dies zu deiner Domain
+            $reset_link = "http://srv-fs01:81/reset_password.php?token=" . $token;
             $subject = "Passwort zurücksetzen";
-            $message = "Klicken Sie auf den folgenden Link, um Ihr Passwort zurückzusetzen: " . $reset_link;
+            $message = "Klicken Sie auf den folgenden Link, um Ihr Passwort zurückzusetzen:\n\n" . $reset_link;
             mail($email, $subject, $message);
 
             $reset_message = "Ein Link zum Zurücksetzen des Passworts wurde an Ihre E-Mail-Adresse gesendet.";
         } else {
             $reset_error = "Diese E-Mail-Adresse ist nicht registriert.";
         }
-
-        $stmt->close();
-        $conn->close();
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -107,78 +87,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
 
-<h2>Benutzer Login</h2>
-
-<?php if (isset($login_error)): ?>
-    <p style="color:red;"><?php echo htmlspecialchars($login_error); ?></p>
-<?php endif; ?>
-<table>
+<!-- Login-Formular -->
 <form method="post" action="">
-	<tr>
-		<input type="hidden" name="action" value="login">
-		<td><label for="username">Benutzername:</label></td>
-		<td><input type="text" id="username" name="username" required></td>
-	</tr>
-	<tr>
-		<td><label for="password">Kennwort:</label></td>
-		<td><input type="password" id="password" name="password" required></td>
-	</tr>
-	<tr>
-		<td colspan="2"><center><br><input type="submit" value="Login"></center></td>
-	</tr>
+    <h2>Login</h2>
+    <input type="hidden" name="action" value="login">
+    
+    <label for="login_username">Benutzername:</label>
+    <input type="text" id="login_username" name="username" required>
+    
+    <label for="login_password">Passwort:</label>
+    <input type="password" id="login_password" name="password" required>
+    
+    <input type="submit" value="Einloggen">
 </form>
-</table>
-<h2>Registrieren</h2>
 
-<?php if (isset($register_error)): ?>
-    <p style="color:red;"><?php echo htmlspecialchars($register_error); ?></p>
-<?php endif; ?>
-
-<?php if (isset($register_success)): ?>
-    <p style="color:green;"><?php echo htmlspecialchars($register_success); ?></p>
-<?php endif; ?>
-
-<table>
+<!-- Registrierungsformular -->
 <form method="post" action="">
-	<tr>
-		<input type="hidden" name="action" value="register">
-		<td><label for="username">Benutzername:</label></td>
-		<td><input type="text" id="username" name="username" required></td>
-	</tr>
-	<tr>
-		<td><label for="password">Kennwort:</label></td>
-		<td><input type="password" id="password" name="password" required></td>
-	</tr>
-	<tr>
-		<td><label for="email">E-Mail-Adresse:</label></td>
-		<td><input type="email" id="email" name="email" required></td>
-	</tr>
-	<tr>
-		<td colspan="2"><br><center><input type="submit" value="Registrieren"></center></td>
-	</tr>
+    <h2>Registrieren</h2>
+    <input type="hidden" name="action" value="register">
+    
+    <label for="reg_username">Benutzername:</label>
+    <input type="text" id="reg_username" name="username" required>
+    
+    <label for="reg_email">E-Mail:</label>
+    <input type="email" id="reg_email" name="email" required>
+    
+    <label for="reg_password">Passwort:</label>
+    <input type="password" id="reg_password" name="password" required>
+    
+    <input type="submit" value="Registrieren">
 </form>
-</table>
 
-<h2>Passwort vergessen?</h2>
-<table>
+<!-- Passwort-Zurücksetzen-Formular -->
 <form method="post" action="">
-	<tr>
-		<input type="hidden" name="action" value="reset_password">
-		<td><label for="email">E-Mail-Adresse:</label></td>
-		<td><input type="email" id="email" name="email" required></td>
-	<tr>
-	</tr>
-		<td colspan="2"><br><center><input type="submit" value="Passwort zurücksetzen"></center></td>
-	</tr>
+    <h2>Passwort zurücksetzen</h2>
+    <input type="hidden" name="action" value="reset_password">
+    
+    <label for="reset_email">E-Mail:</label>
+    <input type="email" id="reset_email" name="email" required>
+    
+    <input type="submit" value="Link zum Zurücksetzen senden">
 </form>
-</table>
-<?php if (isset($reset_message)): ?>
-    <p style="color:green;"><?php echo htmlspecialchars($reset_message); ?></p>
-<?php endif; ?>
-
-<?php if (isset($reset_error)): ?>
-    <p style="color:red;"><?php echo htmlspecialchars($reset_error); ?></p>
-<?php endif; ?>
 
 </body>
 </html>

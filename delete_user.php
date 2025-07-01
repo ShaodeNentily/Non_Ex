@@ -2,16 +2,20 @@
 include 'config.php';
 include 'menu.php';
 
-if (!$loggedin) {
+if (!$loggedin && $role !=='admin') {
     header("Location: login.php");
     exit();
+}
 
 if (!isset($_GET['id'])) {
     die("Benutzer-ID nicht angegeben.");
 }
 
 $user_id = intval($_GET['id']);
-
+if $user_id = 1 {
+	header("Location: ver_user.php");
+	exit();
+}
 // Benutzer löschen
 $stmt_delete = $conn->prepare("DELETE FROM users WHERE id = ?");
 $stmt_delete->bind_param("i", $user_id);

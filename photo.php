@@ -4,17 +4,26 @@ include 'menu.php';
 if (!$loggedin) {
     header("Location: login.php");
     exit();
+}
 
 // Aktuelle KW_ID aus Config
 $stmt = $pdo->query("SELECT MAX(id) AS max_kw FROM Config");
 $config = $stmt->fetch();
 $current_kw_id = $config ? (int)$config['max_kw'] : 0;
+$eingetragen_von = $_SESSION['username'];
 
 // Daten für Dropdowns laden
 $services = $pdo->query("SELECT id, art FROM photo_service_art ORDER BY art")->fetchAll();
 $counters = $pdo->query("SELECT id, bezeichnung FROM counter ORDER BY bezeichnung")->fetchAll();
 $zusatzkosten = $pdo->query("SELECT id, bezeichnung FROM photo_service_zu_kosten ORDER BY bezeichnung")->fetchAll();
-$mitarbeiter = $pdo->prepare("SELECT id, name FROM mitarbeiter WHERE position = ? ORDER BY name");
+$sql = "
+    SELECT m.*
+    FROM mitarbeiter m
+    JOIN Position p ON m.position = p.id
+    WHERE p.name = ?
+";
+
+$mitarbeiter = $pdo->prepare($sql);
 $mitarbeiter->execute(['Photographer']);
 $mitarbeiter = $mitarbeiter->fetchAll();
 
@@ -28,8 +37,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['kunde'], $_POST['serv
     $mitarbeiter_id = (int)$_POST['mitarbeiter_id'];
 
     if ($kunde && $service_id && $zusatz_gast_id && $zusatz_kosten_id && $mitarbeiter_id) {
-        $stmt = $pdo->prepare("INSERT INTO photoshots (kunde, vip, service_id, zusatz_gast_id, zusatz_kosten_id, mitarbeiter_id, KW_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$kunde, $vip, $service_id, $zusatz_gast_id, $zusatz_kosten_id, $mitarbeiter_id, $current_kw_id]);
+        $stmt = $pdo->prepare("INSERT INTO photoshots (kunde, vip, service_id, zusatz_gast_id, zusatz_kosten_id, mitarbeiter_id, KW_id, eingetragen_von) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$kunde, $vip, $service_id, $zusatz_gast_id, $zusatz_kosten_id, $mitarbeiter_id, $current_kw_id, $eingetragen_von]);
         header("Location: photo.php");
         exit;
     }

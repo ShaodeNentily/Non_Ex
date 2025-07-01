@@ -5,11 +5,13 @@ include 'menu.php';
 if (!$loggedin) {
     header("Location: login.php");
     exit();
+}
 
 // Aktuelle KW_ID aus Config holen
 $stmt = $pdo->query("SELECT MAX(id) AS max_kw FROM Config");
 $config = $stmt->fetch();
 $current_kw_id = $config ? (int)$config['max_kw'] : 0;
+$eingetragen_von = $_SESSION['username'];
 
 // Dropdown-Daten laden
 $services = $pdo->query("SELECT * FROM dancer_service ORDER BY service")->fetchAll();
@@ -39,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $ende->modify("+{$gesamtDauer} minutes");
 
     // Eintragen
-    $stmt = $pdo->prepare("INSERT INTO dancer_bookings (kunde, service_id, anzahl, mitarbeiter_id, zusatz_gaeste_id, zusatz_kosten_id, KW_id, startzeit, endzeit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO dancer_bookings (kunde, service_id, anzahl, mitarbeiter_id, zusatz_gaeste_id, zusatz_kosten_id, KW_id, startzeit, endzeit, eingetragen_von) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
         $kunde,
         $service_id,
@@ -49,10 +51,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $kosten_id,
         $current_kw_id,
         $start->format('Y-m-d H:i:s'),
-        $ende->format('Y-m-d H:i:s')
+        $ende->format('Y-m-d H:i:s'),
+		$_SESSION['username'];
     ]);
 
-    header("Location: dancer_buchung.php");
+    header("Location: dancer.php");
     exit;
 }
 ?>

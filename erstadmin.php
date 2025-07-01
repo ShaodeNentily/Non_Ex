@@ -1,44 +1,36 @@
 <?php
-// Einbindung der Konfigurationsdatei für die Datenbankverbindung
 include 'config.php';
 include 'menu.php';
 
-// Funktion zur Passwortverschlüsselung
 function safe_password($password) {
     return password_hash($password, PASSWORD_DEFAULT);
 }
 
-// Überprüfen, ob das Formular gesendet wurde
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Überprüfen, ob bereits ein Admin existiert
-    $sql_check = "SELECT * FROM benutzer WHERE is_admin = 1";
-    $result_check = $conn->query($sql_check);
+    // Prüfen, ob bereits ein Admin existiert
+    $sql_check = "SELECT * FROM benutzer WHERE rolle = 'admin'";
+    $stmt_check = $pdo->query($sql_check);
 
-    if ($result_check->num_rows > 0) {
+    if ($stmt_check->rowCount() > 0) {
         echo "Ein Admin existiert bereits. Diese Seite sollte nicht mehr verwendet werden.";
         exit;
     }
 
-    // Wenn kein Admin existiert, füge den neuen Admin hinzu
-    $sql_insert = "INSERT INTO benutzer (username, passwort_hash, rolle) VALUES (?, ?, admin)";
-    $stmt_insert = $conn->prepare($sql_insert);
-    $hashed_password = safe_password($password); // Passwort verschlüsseln
-    $stmt_insert->bind_param("ss", $username, $hashed_password);
+    // Admin hinzufügen
+    $sql_insert = "INSERT INTO benutzer (username, passwort_hash, rolle) VALUES (?, ?, 'admin')";
+    $stmt_insert = $pdo->prepare($sql_insert);
+    $hashed_password = safe_password($password);
 
-    if ($stmt_insert->execute()) {
+    if ($stmt_insert->execute([$username, $hashed_password])) {
         echo "Der erste Admin wurde erfolgreich hinzugefügt!";
     } else {
-        echo "Fehler beim Hinzufügen des Admins: " . $stmt_insert->error;
+        echo "Fehler beim Hinzufügen des Admins.";
     }
-
-    $stmt_insert->close();
-    $conn->close();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="de">
 <head>

@@ -5,22 +5,37 @@ include 'menu.php';
 if (!$loggedin) {
     header("Location: login.php");
     exit();
+}
 
-// Verkäufe mit Preisen, Getränken, Mitarbeitern laden
+// Kalenderwochen (KW) aus der config-Tabelle holen
+$alleKWs = $pdo->query("SELECT id, bezeichnung FROM config ORDER BY id DESC")->fetchAll();
+
+// Aktuelle KW (höchste ID) oder vom User gewählte KW
+$aktuelleKW = isset($_GET['kw']) && ctype_digit($_GET['kw']) ? (int)$_GET['kw'] : $alleKWs[0]['id'];
+
+// Verkäufe dieser KW abrufen
 $sql = "
-    SELECT v.*, g.getraenk, g.preis, m.name AS mitarbeiter_name
-        FROM verkauf v
-        JOIN getraenk g ON v.getraenk_id = g.id
-        JOIN mitarbeiter m ON v.mitarbeiter_id = m.id
-        WHERE v.KW_id = (
-            SELECT MAX(KW_id) FROM verkauf
-)
-ORDER BY v.id DESC
+    SELECT v.*, g.getraenke AS getraenke_name, g.preis, m.name AS mitarbeiter_name
+    FROM verkaeufe v
+    JOIN getraenke g ON v.getraenke_id = g.id
+    JOIN mitarbeiter m ON v.mitarbeiter_id = m.id
+    WHERE v.KW_id = :kw
+    ORDER BY v.id DESC
 ";
-$verkaeufe = $pdo->query($sql)->fetchAll();
+$stmt = $pdo->prepare($sql);
+$stmt->execute(['kw' => $aktuelleKW]);
+$verkaeufe = $stmt->fetchAll();
 
 $gesamtSumme = 0;
-$mitarbeiterSummen = []; // ID → Summe
+$mitarbeiterSummen = [];
+
+$aktuelleKWBezeichnung = '';
+foreach ($alleKWs as $kw) {
+    if ($kw['id'] == $aktuelleKW) {
+        $aktuelleKWBezeichnung = $kw['bezeichnung'];
+        break;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -31,9 +46,20 @@ $mitarbeiterSummen = []; // ID → Summe
 </head>
 <body>
 
-<h1>Alle Barverkäufe</h1>
+<h1>Barverkäufe – <?= htmlspecialchars($aktuelleKWBezeichnung) ?></h1>
 
-<table>
+<form method="get" style="margin-bottom: 1em;">
+    <label for="kw">Kalenderwoche wählen:</label>
+    <select name="kw" id="kw" onchange="this.form.submit()">
+        <?php foreach ($alleKWs as $kw): ?>
+            <option value="<?= $kw['id'] ?>" <?= $kw['id'] == $aktuelleKW ? 'selected' : '' ?>>
+                <?= htmlspecialchars($kw['bezeichnung']) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</form>
+
+<table border="1" cellpadding="5">
     <tr>
         <th>Datum</th>
         <th>Kunde</th>
@@ -42,12 +68,12 @@ $mitarbeiterSummen = []; // ID → Summe
         <th>Menge</th>
         <th>Gesamt</th>
         <th>Verkäufer</th>
+        <th>Eingetragen von</th>
     </tr>
     <?php foreach ($verkaeufe as $v): 
         $gesamt = $v['preis'] * $v['menge'];
         $gesamtSumme += $gesamt;
 
-        // Summen je Mitarbeiter
         if (!isset($mitarbeiterSummen[$v['mitarbeiter_id']])) {
             $mitarbeiterSummen[$v['mitarbeiter_id']] = [
                 'name' => $v['mitarbeiter_name'],
@@ -59,11 +85,12 @@ $mitarbeiterSummen = []; // ID → Summe
         <tr>
             <td><?= date('d.m.Y H:i', strtotime($v['datum'])) ?></td>
             <td><?= htmlspecialchars($v['kunde']) ?></td>
-            <td><?= htmlspecialchars($v['getraenk_name']) ?></td>
+            <td><?= htmlspecialchars($v['getraenke_name']) ?></td>
             <td><?= $v['preis'] ?></td>
             <td><?= $v['menge'] ?></td>
             <td><?= $gesamt ?></td>
             <td><?= htmlspecialchars($v['mitarbeiter_name']) ?></td>
+            <td><?= htmlspecialchars($v['eingetragen_von']) ?></td>
         </tr>
     <?php endforeach; ?>
 </table>

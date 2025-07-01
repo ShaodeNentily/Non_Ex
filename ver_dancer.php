@@ -2,10 +2,10 @@
 require_once 'config.php';
 include 'menu.php';
 
-if (!$loggedin) {
+if (!$loggedin && $role !=='admin') {
     header("Location: login.php");
     exit();
-
+}
 // Eintrag hinzufügen
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (isset($_POST['add_service'])) {
@@ -48,6 +48,34 @@ if (isset($_GET['delete_service'])) {
     $stmt->execute([(int)$_GET['delete_kosten']]);
 }
 
+// Raum hinzufügen
+if (isset($_POST['add_room'])) {
+    $bez = trim($_POST['room_bez']);
+    if ($bez !== '') {
+        $stmt = $pdo->prepare("INSERT INTO rooms (bezeichnung) VALUES (?)");
+        $stmt->execute([$bez]);
+    }
+    header("Location: ver_photo_service.php"); exit;
+}
+
+// Raum bearbeiten
+if (isset($_POST['edit_room_id'])) {
+    $id = (int)$_POST['edit_room_id'];
+    $bez = trim($_POST['edit_room_bez']);
+    if ($bez !== '') {
+        $stmt = $pdo->prepare("UPDATE rooms SET bezeichnung = ? WHERE id = ?");
+        $stmt->execute([$bez, $id]);
+    }
+    header("Location: ver_photo_service.php"); exit;
+}
+
+// Raum löschen
+if (isset($_GET['delete_room'])) {
+    $stmt = $pdo->prepare("DELETE FROM rooms WHERE id = ?");
+    $stmt->execute([(int)$_GET['delete_room']]);
+    header("Location: ver_photo_service.php"); exit;
+}
+
 // Daten laden
 $services = $pdo->query("SELECT * FROM dancer_service ORDER BY service")->fetchAll();
 $kosten = $pdo->query("SELECT * FROM dancer_service_zu_kosten ORDER BY bezeichnung")->fetchAll();
@@ -83,7 +111,7 @@ $kosten = $pdo->query("SELECT * FROM dancer_service_zu_kosten ORDER BY bezeichnu
     <input type="hidden" name="add_service" value="1">
     <input type="text" name="service" placeholder="Service" required>
     <input type="time" name="dauer" required>
-    <input type="number" name="preis" placeholder="Preis in €" min="0" required>
+    <input type="number" name="preis" placeholder="Preis in Gil" min="0" required>
     <input type="submit" value="Hinzufügen">
 </form>
 
@@ -108,7 +136,7 @@ $kosten = $pdo->query("SELECT * FROM dancer_service_zu_kosten ORDER BY bezeichnu
 <form method="post">
     <input type="hidden" name="add_kosten" value="1">
     <input type="text" name="bezeichnung" placeholder="Bezeichnung" required>
-    <input type="number" name="preis" placeholder="Preis in €" min="0" required>
+    <input type="number" name="preis" placeholder="Preis in Gil" min="0" required>
     <input type="submit" value="Hinzufügen">
 </form>
 </body>
